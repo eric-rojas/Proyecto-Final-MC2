@@ -1,0 +1,132 @@
+import tkinter as tk
+import networkx as nx
+import matplotlib.pyplot as plt
+
+
+class VentanaInicial:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Ventana inicial")
+        
+        # Creamos una etiqueta con el texto que queremos mostrar
+        texto = "Bienvenido al programa!\n\npara poder ingresar nodos y aristas debe hacerlo en los espacios especificados.\n\npara ingresar las aristas debe ingresar el nodo de inicio, espacio, nodo de final\n\nfinalmente para poder visualizar los caminos simples optimos se debe de ingresar nodo de inicio y final en consola "
+        self.label = tk.Label(self.root, text=texto, font=("Arial", 20))
+        self.label.pack(padx=50, pady=50)
+        
+        # Creamos un botón para cerrar la ventana
+        self.boton = tk.Button(self.root, text="Cerrar", command=self.cerrar)
+        self.boton.pack(padx=10, pady=10)
+        
+    def cerrar(self):
+        self.root.destroy()
+
+# Creamos la ventana inicial
+ventana_inicio = tk.Tk()
+ventana = VentanaInicial(ventana_inicio)
+ventana_inicio.mainloop()
+
+
+class Aplicacion:
+    def __init__(self, ventana):
+        # Creamos la ventana
+        self.ventana = ventana
+        self.ventana.title("Grafo")
+        self.ventana.geometry("400x600")
+
+        # Creamos los widgets de entrada
+        self.label_nodos = tk.Label(self.ventana, text="Cantidad de nodos:")
+        self.label_nodos.pack()
+        self.entry_nodos = tk.Entry(self.ventana)
+        self.entry_nodos.pack()
+
+        self.label_aristas = tk.Label(self.ventana, text="Cantidad de aristas:")
+        self.label_aristas.pack()
+        self.entry_aristas = tk.Entry(self.ventana)
+        self.entry_aristas.pack()
+
+        self.boton_obtener_aristas = tk.Button(self.ventana, text="Obtener detalles de aristas", command=self.obtener_detalles_aristas)
+        self.boton_obtener_aristas.pack()
+
+    def obtener_detalles_aristas(self):
+        # Obtenemos los valores de entrada
+        num_nodos = int(self.entry_nodos.get())
+        num_aristas = int(self.entry_aristas.get())
+
+        # Creamos los widgets de entrada para los detalles de aristas
+        self.entries_aristas = []
+        for i in range(num_aristas):
+            label_arista = tk.Label(self.ventana, text=f"Detalles de arista {i+1}:")
+            label_arista.pack()
+            entry_arista = tk.Entry(self.ventana)
+            self.entries_aristas.append(entry_arista)
+            entry_arista.pack()
+
+        # Creamos el botón para dibujar el grafo
+        self.boton_dibujar = tk.Button(self.ventana, text="Dibujar grafo y encontrar camino", command=self.dibujar_grafo)
+        self.boton_dibujar.pack()
+
+    def dibujar_grafo(self):
+        # Creamos un grafo vacío
+        G = nx.Graph()
+
+        # Agregamos nodos
+        for i in range(int(self.entry_nodos.get())):
+            G.add_node(i+1)
+
+        # Agregamos aristas
+        for i in range(int(self.entry_aristas.get())):
+            detalle_arista = self.entries_aristas[i].get().split()
+            nodo1 = int(detalle_arista[0])
+            nodo2 = int(detalle_arista[1])
+            G.add_edge(nodo1, nodo2)
+
+        # Dibujamos el grafo
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=True)
+
+        # Mostramos el grafo
+        plt.show()
+
+        # Encontramos el camino más corto
+        inicio = int(input("Ingrese el nodo de inicio del camino: "))
+        fin = int(input("Ingrese el nodo de fin del camino: "))
+
+        camino = nx.shortest_path(G, source=inicio, target=fin)
+
+
+        # Encontramos otros caminos
+        
+        camino2 = list(nx.dfs_preorder_nodes(G, source=inicio))
+        
+        # Encontramos otro camino simple
+        camino3 = list(nx.dfs_edges(G, source=inicio, depth_limit=len(G)))
+
+        # Convertimos las aristas en nodos para poder dibujar el camino
+        nodos_camino3 = [inicio] + [e[1] for e in camino3]
+
+        # Dibujamos el camino
+        nx.draw_networkx_nodes(G, pos, nodelist=nodos_camino3, node_color='r')
+        nx.draw_networkx_edges(G, pos, edgelist=camino3, edge_color='r')
+        nx.draw_networkx_labels(G, pos, labels={nodo: str(nodo) for nodo in nodos_camino3})
+        plt.show()
+
+
+
+
+      # Dibujamos el camino
+        nx.draw_networkx_nodes(G, pos, nodelist=camino, node_color='r')
+        nx.draw_networkx_edges(G, pos, edgelist=[(camino[i], camino[i+1]) for i in range(len(camino)-1)], edge_color='r')
+        nx.draw_networkx_labels(G, pos, labels={nodo: str(nodo) for nodo in camino})
+        plt.show()
+
+        nx.draw_networkx_nodes(G, pos, nodelist=camino2, node_color='r')
+        nx.draw_networkx_edges(G, pos, edgelist=[(camino2[i], camino2[i+1]) for i in range(len(camino2)-1)], edge_color='r')
+        nx.draw_networkx_labels(G, pos, labels={nodo: str(nodo) for nodo in camino2})
+        plt.show()
+
+       
+
+# Creamos la aplicación
+ventana = tk.Tk()
+aplicacion = Aplicacion(ventana)
+ventana.mainloop()
